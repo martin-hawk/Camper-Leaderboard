@@ -1,0 +1,140 @@
+// https://facebook.github.io/react/docs/thinking-in-react.html
+
+// page header
+var PageHeader = React.createClass({
+  render: function() {
+    return (<header>
+        <a href="https://www.freecodecamp.com" target="_blank">
+          <img className="logo" src="https://s3.amazonaws.com/freecodecamp/freecodecamp_logo.svg" alt="FreeCodeCamp logo" />
+        </a>
+      </header>);
+  }
+});
+
+// page footer
+var PageFooter = React.createClass({
+  render: function() {
+    return (<footer>
+        <a href="https://codepen.io/martin-hawk" target="_blank">
+          MartinHawk.code()</a>
+      </footer>);
+  }
+});
+
+// table header
+var TableHeaders = React.createClass({
+  render: function() {
+    return (
+      <thead>
+      <tr id="colHeaders">
+        <th>No</th>
+        <th>Camper</th>
+        <th id="sortRecent" className="sortable sorted true">Points (past 30 days)</th>
+        <th id="sortAll" className="sortable">Points (all time)</th>
+      </tr>
+        </thead>
+    );
+  }
+});
+
+// row
+var Row = React.createClass({
+  render: function() {
+    return (
+      <tr>
+        <td>{this.props.count}</td>
+        <td>
+          <a href={"https://www.freecodecamp.com/"+this.props.username} target="_blank">
+            <img src={this.props.img} className="avatar"/>
+            {this.props.username}
+          </a>
+        </td>
+        <td>{this.props.recent}</td>
+        <td>{this.props.alltime}</td>
+      </tr>
+    );
+  }
+});
+
+// table
+var Table = React.createClass({
+  render: function() {
+    var count = 0;
+    var rows = this.props.campers.map(function(camper) {
+      return (
+        <Row camper={camper} key={camper.username} img={camper.img} recent={camper.recent} alltime={camper.alltime} count={count} campersAPI={this.props.campersAPI} />
+      );
+    });
+    return (
+      <table className="table table-striped table-bordered">
+          <TableHeaders />
+        <tbody>
+          {rows}
+        </tbody>
+      </table>
+    );
+  }
+});
+
+// main application
+
+var Leaderboard = React.createClass({
+  getInitialState: function() {
+    return {campers: []};
+  },
+  componentDidMount: function() {
+    this.serverRequest = $.get(this.props.campersAPI, function(data) {
+      this.setState({
+        campers: data
+      });
+    }.bind(this));
+  },
+  componentWillUnmount: function() {
+    this.serverRequest.abort();
+  },
+  render: function() {
+    return (
+      <div className="container">
+        <div className="row">
+          <div className="col-md-12">
+        	  <div id="header">
+        		  <h3>Campers Leaderboard</h3>
+            </div>
+          </div>
+        </div>
+        <div className="row">
+                <div className="col-md-12">
+              <Table 
+                campers={this.state.campers} 
+                campersAPI={this.props.campersAPI}
+                />
+           </div>
+        </div>
+      </div>
+    );
+  }
+});
+
+// everything connected
+var LeaderboardApp = React.createClass({
+  render: function() {
+    return (
+      <div>
+      <PageHeader />
+      <Leaderboard campersAPI={this.props.campersAPI} />
+      <PageFooter />
+    </div>);
+  }
+});
+
+ReactDOM.render(<LeaderboardApp campersAPI="https://fcctop100.herokuapp.com/api/fccusers/top/alltime" />, document.getElementById("container"));
+
+/*
+ {
+    "username": "ndburrus",
+    "img": "https://avatars.githubusercontent.com/u/15148847?v=3",
+    "alltime": 1608,
+    "recent": 737,
+    "lastUpdate": "2016-08-26T04:06:54.239Z"
+  }
+*/
